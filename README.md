@@ -2,7 +2,7 @@
 
 
 
-# Example of building and pushing a  docker image 
+# Example of building and pushing a  docker image via CI/CD Pipeline
 
 This is a Git repository that holds a Node application and a Dockerfile. The dockerfile is also at the root folder of the project.
 
