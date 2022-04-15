@@ -7,7 +7,7 @@ This repository is an attempt to consolidate some of the most popular CI/CD Pipl
 
 ## What is Continuous Integration?
 
-In software development, **integration** is the process of incorporating changes like refactored code, new features, or bug fixes into the existing codebase.
+In software development, integration is the process of incorporating changes like refactored code, new features, or bug fixes into the existing codebase.
 
 Traditionally, integration is performed in preparation of the deployment of a new release. This approach can lead to problems, as integrating multiple or large changes in one go may result in last-minute conflicts and bugs. Several strategies have emerged to mitigate these problems. Continuous Integration (CI) is one such solution: it creates a workflow where every commit made to the codebase is tested and built, and each developer on the project is expected to commit code at least once per day. Usually, both testing and building are automated, so that every commit to the central repository triggers an automatic build. If the build is successful, it triggers a run of the test suite. This way, conflicts or bugs are discovered quickly over the course of development, making the release process smoother and less painful.
 
