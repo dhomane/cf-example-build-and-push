@@ -1,0 +1,36 @@
+---
+java_packages:
+  - openjdk-11-jdk
+
+nginx_user: www-data
+nginx_remove_default_vhost: true
+nginx_vhosts:
+  # Kibana proxy.
+  - listen: "80 default_server"
+    filename: kibana.conf
+    server_name: logs.test
+    extra_parameters: |
+      location / {
+          include /etc/nginx/proxy_params;
+          proxy_pass          http://localhost:5601;
+          proxy_set_header   Authorization "";
+          proxy_read_timeout  90s;
+      }
+
+elasticsearch_curator_pip_package: python3-pip
+
+logstash_ssl_key_file: elk-example.p8
+logstash_ssl_certificate_file: elk-example.crt
+
+filebeat_output_logstash_enabled: true
+filebeat_output_logstash_hosts:
+  - "logs.test:5044"
+
+filebeat_ssl_key_file: elk-example.p8
+filebeat_ssl_certificate_file: elk-example.crt
+filebeat_ssl_insecure: "true"
+
+filebeat_inputs:
+  - type: log
+    paths:
+      - /var/log/auth.log

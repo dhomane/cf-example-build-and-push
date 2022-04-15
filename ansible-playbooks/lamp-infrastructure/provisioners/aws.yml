@@ -1,0 +1,120 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    aws_profile: default
+    aws_region: us-east-1 # North Virginia
+    aws_ec2_ami: ami-06cf02a98a61f9f5e # CentOS 7
+
+    instances:
+      - name: a4d.lamp.varnish
+        group: "lamp_varnish"
+        security_group: ["default", "a4d_lamp_http"]
+      - name: a4d.lamp.www.1
+        group: "lamp_www"
+        security_group: ["default", "a4d_lamp_http"]
+      - name: a4d.lamp.www.2
+        group: "lamp_www"
+        security_group: ["default", "a4d_lamp_http"]
+      - name: a4d.lamp.db.1
+        group: "lamp_db"
+        security_group: ["default", "a4d_lamp_db"]
+      - name: a4d.lamp.db.2
+        group: "lamp_db"
+        security_group: ["default", "a4d_lamp_db"]
+      - name: a4d.lamp.memcached
+        group: "lamp_memcached"
+        security_group: ["default", "a4d_lamp_memcached"]
+
+    security_groups:
+      - name: a4d_lamp_http
+        rules:
+          - proto: tcp
+            from_port: 80
+            to_port: 80
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+        rules_egress: []
+
+      - name: a4d_lamp_db
+        rules:
+          - proto: tcp
+            from_port: 3306
+            to_port: 3306
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+        rules_egress: []
+
+      - name: a4d_lamp_memcached
+        rules:
+          - proto: tcp
+            from_port: 11211
+            to_port: 11211
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+        rules_egress: []
+
+  tasks:
+    - name: Configure EC2 Security Groups.
+      ec2_group:
+        name: "{{ item.name }}"
+        description: Example EC2 security group for A4D.
+        state: present
+        rules: "{{ item.rules }}"
+        rules_egress: "{{ item.rules_egress }}"
+        profile: "{{ aws_profile }}"
+        region: "{{ aws_region }}"
+      with_items: "{{ security_groups }}"
+
+    - name: Provision EC2 instances.
+      ec2:
+        key_name: "{{ item.ssh_key | default('lamp_aws') }}"
+        instance_tags:
+          Name: "{{ item.name | default('') }}"
+          Application: lamp_aws
+          inventory_group: "{{ item.group | default('') }}"
+          inventory_host: "{{ item.name | default('') }}"
+        group: "{{ item.security_group | default('') }}"
+        instance_type: "{{ item.type | default('t2.micro')}}"
+        image: "{{ aws_ec2_ami }}"
+        wait: yes
+        wait_timeout: 500
+        exact_count: 1
+        count_tag:
+          inventory_host: "{{ item.name | default('') }}"
+        profile: "{{ aws_profile }}"
+        region: "{{ aws_region }}"
+      register: created_instances
+      with_items: "{{ instances }}"
+
+    - name: Add EC2 instances to inventory groups.
+      add_host:
+        name: "{{ item.1.tagged_instances.0.public_ip }}"
+        groups: "aws,{{ item.1.item.group }},{{ item.1.item.name }}"
+        # You can dynamically add inventory variables per-host.
+        ansible_user: centos
+        host_key_checking: false
+        mysql_replication_role: >-
+          {{ 'master' if (item.1.item.name == 'a4d.lamp.db.1')
+          else 'slave' }}
+        mysql_server_id: "{{ item.0 }}"
+      when: item.1.instances is defined
+      with_indexed_items: "{{ created_instances.results }}"
+
+- hosts: aws
+  gather_facts: false
+
+  tasks:
+    - name: Wait for hosts to become available.
+      wait_for_connection:

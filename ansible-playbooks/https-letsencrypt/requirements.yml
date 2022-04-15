@@ -1,0 +1,5 @@
+---
+roles:
+  - name: geerlingguy.firewall
+  - name: geerlingguy.certbot
+  - name: geerlingguy.nginx

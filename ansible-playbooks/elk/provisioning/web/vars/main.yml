@@ -1,0 +1,19 @@
+---
+nginx_user: www-data
+nginx_remove_default_vhost: true
+
+filebeat_output_logstash_enabled: true
+filebeat_output_logstash_hosts:
+  - "logs.test:5044"
+
+filebeat_ssl_key_file: elk-example.p8
+filebeat_ssl_certificate_file: elk-example.crt
+filebeat_ssl_insecure: "true"
+
+filebeat_inputs:
+  - type: log
+    paths:
+      - /var/log/auth.log
+  - type: log
+    paths:
+      - /var/log/nginx/access.log

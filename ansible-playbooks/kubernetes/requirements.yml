@@ -1,0 +1,8 @@
+---
+roles:
+  - name: geerlingguy.swap
+  - name: geerlingguy.docker
+  - name: geerlingguy.kubernetes
+
+collections:
+  - name: community.kubernetes

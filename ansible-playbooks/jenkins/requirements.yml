@@ -1,0 +1,7 @@
+---
+roles:
+  - name: geerlingguy.firewall
+  - name: geerlingguy.pip
+  - name: geerlingguy.ansible
+  - name: geerlingguy.java
+  - name: geerlingguy.jenkins

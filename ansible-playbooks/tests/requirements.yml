@@ -1,0 +1,29 @@
+---
+roles:
+  - name: geerlingguy.ansible
+  - name: geerlingguy.apache
+  - name: geerlingguy.docker
+  - name: geerlingguy.firewall
+  - name: geerlingguy.git
+  - name: geerlingguy.java
+  - name: geerlingguy.jenkins
+  - name: geerlingguy.mysql
+  - name: geerlingguy.nginx
+  - name: geerlingguy.nodejs
+  - name: geerlingguy.passenger
+  - name: geerlingguy.pip
+  - name: geerlingguy.php
+  - name: geerlingguy.php-mysql
+  - name: geerlingguy.ruby
+  - name: geerlingguy.solr
+
+  - name: geerlingguy.elasticsearch
+    version: 5.0.0
+  - name: geerlingguy.elasticsearch-curator
+    version: 2.1.0
+  - name: geerlingguy.kibana
+    version: 4.0.0
+  - name: geerlingguy.logstash
+    version: 5.1.0
+  - name: geerlingguy.filebeat
+    version: 3.0.1

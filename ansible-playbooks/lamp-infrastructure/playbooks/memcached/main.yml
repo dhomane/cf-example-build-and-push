@@ -1,0 +1,10 @@
+---
+- hosts: lamp_memcached
+  become: yes
+
+  vars_files:
+    - vars.yml
+
+  roles:
+    - geerlingguy.firewall
+    - geerlingguy.memcached

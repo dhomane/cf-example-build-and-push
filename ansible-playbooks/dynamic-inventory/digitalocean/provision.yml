@@ -1,0 +1,39 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: False
+
+  tasks:
+    - name: Create new Droplet.
+      digital_ocean_droplet:
+        state: absent
+        name: ansible-test
+        private_networking: yes
+        size: 1gb
+        image_id: centos-7-x64
+        region: nyc3
+        # Customize this for your account.
+        ssh_keys:
+          - 138954
+        # Required for idempotence/only one droplet creation.
+        unique_name: yes
+      register: do
+
+    - name: Add new host to our inventory.
+      add_host:
+        name: "{{ do.data.ip_address }}"
+        groups: do
+        ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+      when: do.data is defined
+      changed_when: False
+
+- hosts: do
+  remote_user: root
+  gather_facts: False
+
+  tasks:
+    - name: Wait for hosts to become reachable.
+      wait_for_connection:
+
+    - name: Install tcpdump.
+      yum: name=tcpdump state=present

@@ -1,0 +1,9 @@
+---
+- hosts: all
+
+  tasks:
+    - name: Ensure apt cache is updated.
+      apt: update_cache=true cache_valid_time=600
+
+# HTTPS Nginx Proxy test.
+- import_playbook: ../https-nginx-proxy/provisioning/main.yml
