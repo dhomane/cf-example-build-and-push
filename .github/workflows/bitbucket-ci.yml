@@ -1,12 +1,16 @@
- - name: BitBucket CI
-   uses: heussd/mirror-to-bitbucket-github-action@v1
-  
-   with:
-      fetch-depth: 0 # <-- clone with complete history
-      
- - name: Push
-   uses: ./ # Uses an action in the root directory
-   id: mirror-to-bitbucket
-    with:
-      password: ${{ secrets.BITBUCKET_PASSWORD }}
-      repository: ci-cd-pipeline
+name: Mirror to BitBucket
+on: [push]
+
+jobs:
+  mirror-to-bitbucket:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # <-- clone with complete history
+      - name: Push
+        uses: heussd/mirror-to-bitbucket-github-action@main
+        with:
+          password: ${{ secrets.BITBUCKET_PASSWORD }}
+          repository: ci-cd-pipeline
