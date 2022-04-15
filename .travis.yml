@@ -12,3 +12,6 @@ script:
 
 after_success:
   - echo "Success. Congratulations!!"
+  
+notifications:
+  slack: dhomane:4MRj9M5gSXre4jBWLklMHDFY
