@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata: 
+  name: demochat
+  labels: 
+    name: demochat
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 5000
+  selector: 
+    name: demochat
+    version: "3f41f72"
+  type: LoadBalancer

@@ -1,0 +1,47 @@
+version: '1.0'
+steps:
+
+  retrieve-git-hash:
+    description: retrive git tag
+    title: Free styling 2
+    image: bravissimolabs/alpine-git
+    commands:
+        - echo $(git rev-parse --short=5 HEAD)
+        - export GIT_HASH=$(git rev-parse --short=5 HEAD)
+        - cf_export GIT_TAG=$GIT_HASH
+  test-git-hash:
+    description: retrive git tag!
+    title: Free styling 2
+    image: ubuntu:latest
+    commands:
+      - echo $GIT_TAG
+  build_step:
+    title: Build
+    type: build
+    dockerfile: Dockerfile
+    image_name: containers101/demochat
+    tag: '${{CF_BRANCH}}'
+
+  tag:
+    type: push
+    title: add version
+    description: Free text description
+    candidate: ${{build_step}}
+    tag: ${{GIT_TAG}}
+    image_name: verchol/demochat
+    registry : dockerhub
+
+  deploy_to_kubernetes:
+    image: codefresh/cf-deploy-kubernetes
+    tag: latest
+    commands:
+      - /cf-deploy-kubernetes deployment.yml
+    environment:
+      - KUBERNETES_USER=${{KUBERNETES_USER}}
+      - KUBERNETES_PASSWORD=${{KUBERNETES_PASSWORD}}
+      - KUBERNETES_SERVER=${{KUBERNETES_SERVER}}
+      - DOCKER_IMAGE_TAG=${{CF_BRANCH}}
+    when:
+      condition:
+        all:
+          deploy_to_kubernetes: '"${{DEPLOY_KUBERNETES}}" == "true"'

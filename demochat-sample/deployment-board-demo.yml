@@ -1,0 +1,23 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: demochatboard
+  labels:
+    service: demochatboard
+spec:
+  replicas: 2
+  template:
+    metadata:
+      annotations:
+        forceRedeployUniqId: "{{CF_REVISION}}"
+      labels:
+        service: demochatboard
+    spec:
+      containers:
+      - image: verchol/demochat-board:{{CF_BRANCH}}
+        name: app
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          protocol: TCP

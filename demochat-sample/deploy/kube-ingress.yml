@@ -1,0 +1,25 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: demo-chat
+  name: demo-chat
+spec:
+  type: NodePort
+  ports:
+  - name: "http"
+    port: 80
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    service: demo-chat
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: demochat-ingress
+spec:
+  backend:
+    serviceName: demochat-board
+    servicePort: 80

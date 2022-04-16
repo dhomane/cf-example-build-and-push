@@ -1,0 +1,25 @@
+version: '1.0'
+steps:
+#  BuildingDockerImage:
+#    title: Building Docker Image
+#    type: build
+#    image_name: containers101/demochat
+#    working_directory: ./
+#    dockerfile: Dockerfile
+#    tag: '${{CF_SHORT_REVISION}}'
+  BlueGreenDeploy:
+    title: Perform a Blue Green Deployment
+    image: codefresh/kube-helm:master
+    environment:
+      - KUBE_CONTEXT=helmdemo@jFrog-Helm
+      - NAMESPACE=bluegreen
+    commands:
+      - echo "Starting commands"
+      - kubectl config use-context ${KUBE_CONTEXT}
+      - export BlueVersion=$(kubectl get service demochat -o=jsonpath='{.spec.selector.version}' --namespace=bluegreen) #find deployed version
+      - export EndPoint=$(kubectl get service demochat -o jsonpath="{.status.loadBalancer.ingress[*].ip}" --namespace=bluegreen) #Find exposed service
+      - kubectl get deployment demochat-$BlueVersion -o=yaml --namespace=bluegreen | sed -e "s/$BlueVersion/${{CF_SHORT_REVISION}}/g" | kubectl apply --namespace=bluegreen -f - #New Deployment
+      - sleep 30 #wait for deployment to finish, replace with better version
+      #- curl --silent --show-error --fail $EndPoint #Health Check
+      - kubectl get service demochat -o=yaml --namespace=bluegreen | sed -e "s/$BlueVersion/${{CF_SHORT_REVISION}}/g" | kubectl apply --namespace=bluegreen -f - #Update Service YAML with Green version
+      - kubectl delete deployment demochat-$BlueVersion --namespace=bluegreen

@@ -1,0 +1,5 @@
+dependencies:
+- name: mongo
+  version: "0.2.0"
+  repository: "https://razielt77.github.com/helm"
+

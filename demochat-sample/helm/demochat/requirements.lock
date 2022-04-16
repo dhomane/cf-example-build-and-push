@@ -1,0 +1,10 @@
+dependencies:
+- condition: ""
+  enabled: false
+  import-values: null
+  name: mongo
+  repository: https://razielt77.github.com/helm
+  tags: null
+  version: 0.2.0
+digest: sha256:85ecfc6c5c80a77823ba6ad7ca5758d2f78eaec105d89ceee30b419d8ed6fe47
+generated: 2018-01-16T21:52:04.399476-08:00

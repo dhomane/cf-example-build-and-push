@@ -1,0 +1,111 @@
+version: '1.0'
+steps:
+  BuildingDockerImage:
+    title: Building Docker Image
+    type: build
+    image_name: containers101/demochat
+    working_directory: ./
+    dockerfile: Dockerfile
+    tag: '${{CF_BRANCH_TAG_NORMALIZED}}'
+  RunningUnitTests:
+    title: Running Unit Tests
+    image: '${{BuildingDockerImage}}'
+    working_directory: IMAGE_WORK_DIR
+    commands: 
+      - bash unit_test.sh
+    on_success:
+      metadata:
+        set:
+          - '${{BuildingDockerImage.imageId}}':
+              - CF_QUALITY: true
+    on_fail:
+      metadata:
+        set:
+          - '${{BuildingDockerImage.imageId}}':
+              - CF_QUALITY: false  
+  RunningPerformanceTests:
+    title: Running Performance Tests
+    type: composition
+    composition:
+      version: '2'
+      services:
+        aut:
+          ports:
+            - 5000
+          image: 'containers101/demochat:master'
+        mongo:
+          image: mongo
+    composition_candidates:
+      cfintegration:
+        image: 'r.cfcr.io/razielt77_github/razielt/taurus:master'
+        command: bash runtests
+        environment:
+          - CF_VOLUME_PATH=${{CF_VOLUME_PATH}}
+          - TOKEN=${{TOKEN}} 
+        volumes:
+         - '${{CF_VOLUME_NAME}}:/codefresh/volume'
+    add_flow_volume_to_composition: true
+    when:
+      condition:
+        all:
+          testresults: '"${{FAIL}}" == "0"' 
+    on_success:
+      metadata:
+        set:
+          - '${{BuildingDockerImage.imageId}}':
+              - CF_QUALITY: true
+              - PerformanceReport: ${{PER_LINK}}
+    on_fail:
+      metadata:
+        set:
+          - '${{BuildingDockerImage.imageId}}':
+              - CF_QUALITY: false
+  add_jira_info:
+    title: Parsing jira Commit
+    image: r.cfcr.io/razielt77_github/containers101/annotator:master
+    command:
+      - bash script.sh
+    working_directory: IMAGE_WORK_DIR
+    environment:
+      - CF_COMMIT_MESSAGE = ${{CF_COMMIT_MESSAGE}}
+      - CF_VOLUME_PATH=${{CF_VOLUME_PATH}}
+  export:
+    title: "Exporting variables..."
+    image: alpine
+    commands:
+      - echo "Exporting variables..."
+  set_metadata:
+    title: "Setting metadata on image..."
+    image: alpine
+    commands:
+      - echo "Setting metadata on image..."
+    on_finish:
+      metadata:
+        set:
+          - '${{BuildingDockerImage.imageId}}':
+              - Jira: ${{JIRA_URL}}
+              - PerformanceReport: ${{PER_LINK}}
+              - PerformanceLatency: ${{PER_LATE}}
+              - UnitCoverage: ${{UNIT_COV}}
+              - Unit: ${{UNIT}}
+  rename_env:
+    title: Run and rename environment
+    type: launch-composition
+    composition: 'full-application'
+    environment_name: '${{CF_REPO_OWNER}}-${{CF_REPO_NAME}}-${{CF_COMMIT_AUTHOR}}'
+    when:
+      condition:
+        all:
+          testresults: '"${{FAIL}}" == "1"'   
+  passfail:
+    title: failed
+    image: alpine
+    commands:
+     - echo "exit ${{FAIL}}"
+     - sh -c "exit ${{FAIL}}"
+    on_fail:
+      metadata:
+        set:
+          - '${{BuildingDockerImage.imageId}}':
+              - CF_QUALITY: false
+            

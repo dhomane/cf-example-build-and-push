@@ -1,0 +1,46 @@
+version: '1.0'
+steps:
+  BuildingDockerImage:
+    title: Building Docker Image
+    type: build
+    image_name: demochat
+    working_directory: ./
+    dockerfile: Dockerfile
+    metadata: # Declare the metadata attribute
+      set: # Specify the set operation
+        - Unit_Test: true
+        - API_Test: true
+        - Ave_Res_Time: 2 msec
+        - Packet_Loss: 0
+        - Security: true
+  # RunningUnitTests:
+  #  title: Running Unit Tests
+  #  type: composition
+  #  composition: 5959cfa8e82afd0001bb2f1c
+  #  composition_candidates:
+  #    demochat:
+  #      image: '${{BuildingDockerImage}}'
+  #      entrypoint: sh /codefresh/volume/cf-generated/unit_test_script
+  #      volumes:
+  #       - '${{CF_VOLUME_NAME}}:/codefresh/volume'
+  # add_flow_volume_to_composition: true
+  #  create_file:
+  #    path: /codefresh/volume/cf-generated
+  #    name: unit_test_script
+  #    content: npm test
+  #  on_success:
+  #    metadata:
+  #      set:
+  #        - '${{BuildingDockerImage.imageId}}':
+  #            - CF_QUALITY: true
+#              - Unit Test: true
+#              - API Test: true
+#              - Performance: Average Response Time 2msec
+#              - Performance: 0 Packet Loss
+#              - Security: true
+#    on_fail:
+#      metadata:
+#        set:
+#          - '${{BuildingDockerImage.imageId}}':
+#              - CF_QUALITY: false
+

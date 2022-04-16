@@ -1,0 +1,24 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: demochat-55cb26a
+spec:
+  replicas: 2
+  template:
+    metadata:
+      annotations:
+        forceRedeployUniqId: "55cb26a"
+      labels:
+        name: demochat
+        version: "55cb26a"
+    spec:
+      containers:
+      - name: demochat
+        image: r.cfcr.io/jfrog-azure-demo/containers101/demochat:55cb26a
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 5000
+          protocol: TCP
+      imagePullSecrets:
+        - name: codefresh-generated-r.cfcr.io-cfcr-bluegreen

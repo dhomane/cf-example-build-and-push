@@ -1,0 +1,21 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: demo-chat
+  labels:
+    service: demo-chat
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        service: demo-chat
+    spec:
+      containers:
+      - image: ${{build_step}}
+        name: app
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          protocol: TCP

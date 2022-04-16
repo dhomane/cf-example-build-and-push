@@ -1,0 +1,71 @@
+#---
+#kind: StorageClass
+#apiVersion: storage.k8s.io/v1beta1
+#metadata:
+#  name: gce-disk
+#provisioner: kubernetes.io/gce-pd
+#parameters:
+#  type: pd-ssd
+
+#---
+#apiVersion: v1
+#kind: PersistentVolume
+#metadata:
+  #name: mongo-volume
+  #annotations:
+  #  volume.beta.kubernetes.io/storage-class: gce-disk
+#spec:
+  #accessModes:
+  #  - ReadWriteOnce
+  #capacity:
+  #  storage: 5Gi
+  #hostPath:
+    #  path: /data/pv0001/
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    io.codefresh.owner: codefresh
+  labels:
+    service: mongo
+  name: mongo
+spec:
+  ports:
+  - name: "mongodb"
+    port: 27017
+    protocol: TCP
+    targetPort: 27017
+  selector:
+    service: mongo
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    io.codefresh.owner: codefresh
+  name: mongo
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        service: mongo
+    spec:
+      containers:
+      - args:
+        - mongod
+        - --smallfiles
+        image: mongo:latest
+        name: mongo
+        ports:
+        - containerPort: 27017
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /data/db
+          name: mongo-data
+      restartPolicy: Always
+      volumes:
+      - name: mongo-data
+        emptyDir: {}

@@ -1,0 +1,13 @@
+version: '1.0'
+steps:
+  RunningDeployScript:
+    title: Running Deploy Script
+    type: deploy
+    kind: kubernetes
+    cluster: my-cluster@FirstKubernetes
+    namespace: default
+    when:
+      branch:
+        only:
+          - master
+    service: demochat
