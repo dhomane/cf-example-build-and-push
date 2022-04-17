@@ -1,8 +1,0 @@
-apiVersion: extensions/v1beta1g
-kind: Ingress
-metadata:
-  name: demochat-ingress
-spec:
-  backend:
-    serviceName: demochat-board
-    servicePort: 80
