@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: hello-world
+  name: ci-cd-pipeline
 spec:
-  replicas: 5
+  replicas: 4
   selector:
     matchLabels:
-      app: hello-world
+      app: ci-cd-pipeline
   template:
     metadata:
       labels:
-        app: hello-world
+        app: ci-cd-pipeline
     spec:
       containers:
         - name: busybox
