@@ -3,17 +3,30 @@ name: Run in Docker
 agent:
   machine:
     type: e1-standard-2
+    os_image: ubuntu1804
   containers:
     - name: main
-      image: 'registry.semaphoreci.com/node:10' # Your primary container where commands are run
+      image: 'registry.semaphoreci.com/node:10'
     - name: database
       image: 'registry.semaphoreci.com/postgres:11'
-
 blocks:
   - name: Hello World
     task:
       jobs:
         - name: Test job
           commands:
-            - checkout # Check out the code
+            - checkout
             - echo "Hello from my 'main' container"
+      prologue:
+        commands:
+          - echo "Started!"
+      epilogue:
+        always:
+          commands:
+            - echo "Done!"
+        on_pass:
+          commands:
+            - echo "Success!!"
+        on_fail:
+          commands:
+            - echo "Please Try Again"
