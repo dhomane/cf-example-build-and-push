@@ -8,5 +8,20 @@
   "private": true,
   "dependencies": {
     "express": "3.x"
-  }
+  },
+  "main": "index.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dhomane/ci-cd-pipeline.git"
+  },
+  "keywords": [
+    "hello-world"
+  ],
+  "author": "dhomane",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dhomane/ci-cd-pipeline/issues"
+  },
+  "homepage": "https://github.com/dhomane/ci-cd-pipeline#readme"
 }
