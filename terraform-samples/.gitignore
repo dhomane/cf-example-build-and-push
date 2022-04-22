@@ -1,0 +1,7 @@
+**.terraform*
+**terraform.tfstate*
+**txt
+TODO
+**tfvars
+.*.sw?
+!**.terraformignore*
