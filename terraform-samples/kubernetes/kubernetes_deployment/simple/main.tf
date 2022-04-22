@@ -11,32 +11,64 @@ terraform {
   }
 }
 
-# Documentation: https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/deployment
-resource "kubernetes_deployment" "terraform-k8s" {
+provider "kubernetes" {
+  config_path = "~/.kube/config"
+}
+
+resource "kubernetes_deployment_v1" "example" {
   metadata {
-    name = "terraform-k8s"
+    name = "terraform-example"
     labels = {
-      app = "terraform-k8s"
+      test = "MyExampleApp"
     }
   }
 
   spec {
-    replicas = 1
+    replicas = 3
+
     selector {
       match_labels = {
-        app = "terraform-k8s"
+        test = "MyExampleApp"
       }
     }
+
     template {
       metadata {
         labels = {
-          app = "terraform-k8s"
+          test = "MyExampleApp"
         }
       }
+
       spec {
         container {
-          image = "busybox"
-          name  = "busybox"
+          image = "nginx:1.21.6"
+          name  = "example"
+
+          resources {
+            limits = {
+              cpu    = "0.5"
+              memory = "512Mi"
+            }
+            requests = {
+              cpu    = "250m"
+              memory = "50Mi"
+            }
+          }
+
+          liveness_probe {
+            http_get {
+              path = "/"
+              port = 80
+
+              http_header {
+                name  = "X-Custom-Header"
+                value = "Awesome"
+              }
+            }
+
+            initial_delay_seconds = 3
+            period_seconds        = 3
+          }
         }
       }
     }
