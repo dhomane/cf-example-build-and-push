@@ -14,4 +14,4 @@ jobs:
         env:
           KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA_K3D }}
         with:
-          args: apply -f https://raw.githubusercontent.com/ContainerSolutions/kubernetes-examples/master/Deployment/init-container-msg.yaml
+          args: apply -f https://raw.githubusercontent.com/dhomane/kubernetes-examples/master/Deployment/github-actions-app.yaml
