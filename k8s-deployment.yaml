@@ -2,16 +2,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ci-cd-pipeline
+  name: github-k8s
 spec:
-  replicas: 4
+  replicas: 3
   selector:
     matchLabels:
-      app: ci-cd-pipeline
+      app: github-k8s
   template:
     metadata:
       labels:
-        app: ci-cd-pipeline
+        app: github-k8s
     spec:
       containers:
         - name: busybox
