@@ -4,7 +4,7 @@ kind: Deployment
 metadata:
   name: github-k8s
 spec:
-  replicas: 3
+  replicas: 4
   selector:
     matchLabels:
       app: github-k8s
