@@ -1,0 +1,43 @@
+#
+#  Author: Hari Sekhon
+#  Date: 2019-03-16 20:35:14 +0000 (Sat, 16 Mar 2019)
+#
+#  https://github.com/HariSekhon/DevOps-Bash-tools
+#
+#  License: see accompanying LICENSE file
+#
+#  https://www.linkedin.com/in/HariSekhon
+#
+
+# ============================================================================ #
+#                          Deb Package Requirements
+# ============================================================================ #
+
+bash
+bc
+build-essential
+ca-certificates
+cpanminus
+curl
+#direnv
+git
+golang
+groovy  # needed by check_groovyc.sh in Jenkins shared library CI/CD workflow in GitHub Actions
+iputils-ping
+jq
+less
+libperl-dev    # needed for PAR:Packer
+libxml2-utils  # needed for xmllint
+make
+openssh-client
+parallel
+perl
+procps
+psmisc  # for fuser for apt_wait.sh
+ruby-dev  # to build Travis CI gem
+time
+wget
+# included in distro
+#which
+zip
+unzip

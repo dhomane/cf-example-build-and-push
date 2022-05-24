@@ -1,0 +1,38 @@
+#
+#  Author: Hari Sekhon
+#  Date: 2019-03-16 20:35:14 +0000 (Sat, 16 Mar 2019)
+#
+#  https://github.com/HariSekhon/DevOps-Bash-tools
+#
+#  License: see accompanying LICENSE file
+#
+#  https://www.linkedin.com/in/HariSekhon
+#
+
+# ============================================================================ #
+#                          RPM Package Requirements
+# ============================================================================ #
+
+bash
+bc
+#binutils  # contains old C tools like 'strings'
+bind-utils # host / nslookup / dig commands
+curl
+#direnv
+gcc
+git
+golang
+findutils  # find and xargs
+iputils
+jq
+libxml2  # needed for xmllint - usually already installed
+make
+openssh-clients
+perl
+#perl-App-cpanminus  # not available on RHEL6, moved to rpm-packages-optional.txt
+#ShellCheck  # not available in RHEL8, moved to rpm-packages-optional.txt
+ruby-devel  # to build Travis CI gem
+wget
+which
+zip
+unzip
