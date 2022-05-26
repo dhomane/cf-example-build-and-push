@@ -2,16 +2,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: github-k8s
+  name: hello-kubernetes
 spec:
   replicas: 4
   selector:
     matchLabels:
-      app: github-k8s
+      app: hello-kubernetes
   template:
     metadata:
       labels:
-        app: github-k8s
+        app: hello-kubernetes
     spec:
       containers:
         - name: busybox
