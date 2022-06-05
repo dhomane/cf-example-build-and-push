@@ -2,16 +2,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: hello-kubernetes
+  name: hello-world
 spec:
   replicas: 4
   selector:
     matchLabels:
-      app: hello-kubernetes
+      app: hello-world
   template:
     metadata:
       labels:
-        app: hello-kubernetes
+        app: hello-world
     spec:
       containers:
         - name: busybox
