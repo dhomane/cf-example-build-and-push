@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+#  vim:ts=4:sts=4:sw=4:et
+#
+#  Author: Hari Sekhon
+#  Date: Mon Feb 22 17:42:01 2021 +0000
+#
+#  https://github.com/HariSekhon/DevOps-Bash-tools
+#
+#  License: see accompanying Hari Sekhon LICENSE file
+#
+#  If you're using my code you're welcome to connect with me on LinkedIn and optionally send me feedback to help steer this or other code I publish
+#
+#  https://www.linkedin.com/in/HariSekhon
+#
+
+# ============================================================================ #
+#                              G C P   D i r e n v
+# ============================================================================ #
+
+# https://direnv.net/man/direnv-stdlib.1.html
+
+# See Also:
+#
+#   .envrc
+#   .envrc-aws
+#   .envrc-kubernetes
+
+# direnv stdlib - loads .envrc from parent dir up to /
+#
+# useful to accumulate parent and child directory .envrc settings eg. adding Kubernetes namespace, ArgoCD app etc.
+#
+# bypasses security authorization though - use with care
+#source_up
+#
+# source_up must be loaded before set -u otherwise gets this error:
+#
+#   direnv: loading .envrc
+#   /bin/bash: line 226: $1: unbound variable
+
+set -euo pipefail
+[ -n "${DEBUG:-}" ] && set -x
+srcdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# https://cloud.google.com/sdk/gcloud/reference/config
+
+# If using other services, infer the environment variables to put below by reading:
+#
+#   gcloud topic configurations
+#       or
+#   gcloud config set --help
+
+if [ -z "${CI:-}" ]; then
+    # gcloud config configurations list
+    export CLOUDSDK_ACTIVE_CONFIG_NAME="dev"
+fi
+
+# XXX: Edit
+export CLOUDSDK_CORE_PROJECT=myproject
+
+# XXX: Edit
+export REGION=europe-west2
+
+export CLOUDSDK_COMPUTE_REGION="$REGION"
+export CLOUDSDK_COMPUTE_ZONE="${REGION}-a" # or b or c
+
+export CLOUDSDK_AI_REGION="$REGION"
+export CLOUDSDK_AI_PLATFORM_REGION="$REGION"
+export CLOUDSDK_DATAPROC_REGION="$REGION"
+export CLOUDSDK_DEPLOY_REGION="$REGION"
+export CLOUDSDK_FILESTORE_REGION="$REGION"
+export CLOUDSDK_FUNCTIONS_REGION="$REGION"
+export CLOUDSDK_MEMCACHE_REGION="$REGION"
+export CLOUDSDK_REDIS_REGION="$REGION"
+export CLOUDSDK_RUN_REGION="$REGION"
+export CLOUDSDK_RUN_CLUSTER_LOCATION="$REGION"
+export CLOUDSDK_VMWARE_REGION="$REGION"
+
+# XXX: Edit
+export CLOUDSDK_RUN_PLATFORM=managed
+#export CLOUDSDK_RUN_PLATFORM=gke
+#export CLOUDSDK_RUN_PLATFORM=kubernetes
+#export CLOUDSDK_RUN_CLUSTER=mycluster
+
+export CLOUDSDK_GCLOUDIGNORE_ENABLED=True
+#export CLOUDSDK_BUILDS_USE_KANIKO=True
+
+# XXX: Edit, or remove if only have 1 cluster in project, will auto-determine below
+export CLOUDSDK_CONTAINER_CLUSTER=mycluster  # GKE cluster name
+
+# If CLOUDSDK_CONTAINNER_CLUSTER isn't set and there is only one EKS cluster in this account and region, then use it - smart, but slower, prefer setting it explicitly for speed
+if [ -z "${CLOUDSDK_CONTAINER_CLUSTER:-}" ]; then
+    gke_clusters=()
+    while IFS='' read -r line; do
+        gke_clusters+=("$line")
+    done < <(gcloud container clusters list --format='get(name)')
+    if [ "${#gke_clusters[@]}" -eq 1 ]; then
+        export CLOUDSDK_CONTAINER_CLUSTER="${gke_clusters[*]}"
+    fi
+fi
+
+if [ -n "${CLOUDSDK_CONTAINER_CLUSTER:-}" ]; then
+    # kubectl context is easily created by running adjacent aws_kube_creds.sh script first
+
+    export GKE_CONTEXT="gke_${CLOUDSDK_CORE_PROJECT}_${CLOUDSDK_COMPUTE_REGION}_${CLOUDSDK_CONTAINER_CLUSTER}"
+
+    # XXX: safer to inline .envrc-kubernetes if you're worried about changes to it bypassing 'direnv allow' authorization
+    # shellcheck disable=SC1090
+    . "$srcdir/.envrc-kubernetes" "$GKE_CONTEXT"
+fi

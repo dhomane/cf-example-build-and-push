@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+#  vim:ts=4:sts=4:sw=4:et
+#
+#  Author: Hari Sekhon
+#  Date: 2021-02-25 10:10:53 +0000 (Thu, 25 Feb 2021)
+#
+#  https://github.com/HariSekhon/DevOps-Bash-tools
+#
+#  License: see accompanying Hari Sekhon LICENSE file
+#
+#  If you're using my code you're welcome to connect with me on LinkedIn and optionally send me feedback to help steer this or other code I publish
+#
+#  https://www.linkedin.com/in/HariSekhon
+#
+
+# ============================================================================ #
+#                       K u b e r n e t e s   D i r e n v
+# ============================================================================ #
+
+# https://direnv.net/man/direnv-stdlib.1.html
+
+# See Also:
+#
+#   .envrc
+#   .envrc-aws
+#   .envrc-gcp
+
+# direnv stdlib - loads .envrc from parent dir up to /
+#
+# useful to accumulate parent and child directory .envrc settings eg. adding Kubernetes namespace, ArgoCD app etc.
+#
+# bypasses security authorization though - use with care
+#source_up
+#
+# source_up must be loaded before set -u otherwise gets this error:
+#
+#   direnv: loading .envrc
+#   /bin/bash: line 226: $1: unbound variable
+
+set -euo pipefail
+[ -n "${DEBUG:-}" ] && set -x
+
+if [ "$1" = "${BASH_SOURCE[0]##*/}" ]; then
+    shift
+fi
+
+# XXX: Edit this - hardcode for localized convenience
+CONTEXT="${1:-docker-desktop}"
+# if set will also set the namespace for extra convenience
+NAMESPACE="${2:-}"
+#NAMESPACE="jenkins"
+
+if command -v kubectl &>/dev/null; then
+    tmpdir="/tmp/.kube"
+
+    mkdir -pv "$tmpdir"
+
+    default_kubeconfig="${HOME:-$(cd ~ && pwd)}/.kube/config"
+    original_kubeconfig="${KUBECONFIG:-$default_kubeconfig}"
+
+    # reload safety - do not source from new tmpdir - not necessary for direnv but useful for local sourcing tests
+    #if [[ "$original_kubeconfig" =~ $tmpdir ]]; then
+    #    echo "ignoring \$KUBECONFIG=$original_kubeconfig, using default home location $default_kubeconfig"
+    #    original_kubeconfig="$default_kubeconfig"
+    #fi
+
+    # isolate the kubernetes context to avoid a race condition affecting any other shells or scripts
+    # epoch is added because $$ and $PPID are direnv sub-processes and may be reused later, so using epoch to add uniqueness
+    epoch="$(date +%s)"
+    export KUBECONFIG="$tmpdir/config.${EUID:-${UID:-$(id -u)}}.$$.$epoch"
+
+    # load your real kube config to isolated staging area to source the context info
+    if [ -f "$original_kubeconfig" ]; then
+        cp "$original_kubeconfig" "$KUBECONFIG"
+    elif [ -f "$default_kubeconfig" ]; then
+        cp "$default_kubeconfig" "$KUBECONFIG"
+    elif [ -f "$PWD/.kube/config" ]; then
+        cp "$PWD/.kube/config" "$KUBECONFIG"
+    else
+        echo "WARNING: failed to find one of:
+
+        $original_kubeconfig
+        $default_kubeconfig
+        $PWD/.kube/config
+    " >&2
+    fi
+
+    if kubectl config get-contexts -o name 2>/dev/null | grep -Fxq "$CONTEXT"; then
+        kubectl config use-context "$CONTEXT"
+
+        if [ -n "${NAMESPACE:-}" ]; then
+            kubectl config set-context "$CONTEXT" --namespace "$NAMESPACE"
+        fi
+    fi
+fi
+
+#export ARGOCD_SERVER="argocd.mycompany.com"
+#export ARGOCD_OPTS="${ARGOCD_OPTS:-} --grpc-web"
+#if [ -n "${ARGOCD_AUTH_TOKEN_MYCOMPANY_OR_ENV:-}" ]; then
+#    export ARGOCD_AUTH_TOKEN="$ARGOCD_AUTH_TOKEN_MYCOMPANY_OR_ENV"
+#fi
+#export ARGOCD_APP="myapp"

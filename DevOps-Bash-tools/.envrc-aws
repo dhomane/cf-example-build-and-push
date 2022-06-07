@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+#  vim:ts=4:sts=4:sw=4:et
+#
+#  Author: Hari Sekhon
+#  Date: 2021-07-27 12:42:32 +0100 (Tue, 27 Jul 2021)
+#
+#  vim:ts=4:sts=4:sw=4:et
+#
+#  https://github.com/HariSekhon/DevOps-Bash-tools
+#
+#  License: see accompanying Hari Sekhon LICENSE file
+#
+#  If you're using my code you're welcome to connect with me on LinkedIn and optionally send me feedback to help steer this or other code I publish
+#
+#  https://www.linkedin.com/in/HariSekhon
+#
+
+# ============================================================================ #
+#                              A W S   D i r e n v
+# ============================================================================ #
+
+# https://direnv.net/man/direnv-stdlib.1.html
+
+# See Also:
+#
+#   .envrc
+#   .envrc-gcp
+#   .envrc-kubernetes
+
+# direnv stdlib - loads .envrc from parent dir up to /
+#
+# useful to accumulate parent and child directory .envrc settings eg. adding Kubernetes namespace, ArgoCD app etc.
+#
+# bypasses security authorization though - use with care
+#source_up
+#
+# source_up must be loaded before set -u otherwise gets this error:
+#
+#   direnv: loading .envrc
+#   /bin/bash: line 226: $1: unbound variable
+
+set -euo pipefail
+[ -n "${DEBUG:-}" ] && set -x
+srcdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# XXX: Edit - crucial to set to the right environment, the rest of the inferred settings below depend on this
+if [ -z "${CI:-}" ]; then
+    export AWS_PROFILE="default"
+fi
+
+AWS_ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text || aws configure get sso_account_id || :)"
+export AWS_ACCOUNT_ID
+AWS_DEFAULT_REGION="$(aws configure get region || :)"  # use region configured in profile by default
+AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-eu-west-2}"  # XXX: Edit default fallback region
+export AWS_DEFAULT_REGION
+export AWS_DEFAULT_OUTPUT=json
+
+# XXX: Edit, or remove if only have 1 cluster in account, will auto-determine below
+export EKS_CLUSTER="mycluster"
+
+# If EKS_CLUSTER isn't set and there is only one EKS cluster in this account and region, then use it - smart, but slower, prefer setting it explicitly for speed
+if [ -z "${EKS_CLUSTER:-}" ]; then
+    eks_clusters=()
+    while IFS='' read -r line; do
+        eks_clusters+=("$line")
+    #done < <(aws eks list-clusters --output=json | jq -r '.clusters[]')
+    done < <(aws eks list-clusters --query 'clusters[]' --output text)
+    if [ "${#eks_clusters[@]}" -eq 1 ]; then
+        export EKS_CLUSTER="${eks_clusters[*]}"
+    fi
+fi
+
+if [ -n "${EKS_CLUSTER:-}" ]; then
+    # kubectl context is easily created by running adjacent aws_kube_creds.sh script first
+    export EKS_CONTEXT="arn:aws:eks:$AWS_DEFAULT_REGION:$AWS_ACCOUNT_ID:cluster/$EKS_CLUSTER"
+
+    # XXX: safer to inline .envrc-kubernetes if you're worried about changes to it bypassing 'direnv allow' authorization
+    # shellcheck disable=SC1090
+    . "$srcdir/.envrc-kubernetes" "$EKS_CONTEXT"
+fi
+
+# better to load this dynamically from credentials, using functions in .bash.d/aws.sh
+#export AWS_ACCESS_KEY_ID=...
+#export AWS_SECRET_ACCESS_KEY=...
+#export AWS_SESSION_TOKEN=...
+
+#export AWS_CONFIG_FILE=~/.aws/config
+#export AWS_SHARED_CREDENTIALS_FILE=~/.aws/credentials
+#export AWS_MAX_ATTEMPTS=3
+
+aws_access_key_env(){
+    env="$1"
+    for key in AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY; do
+        varname="${env}_${key}"
+        if [ -n "${!varname:-}" ]; then
+            export "$key"="${!varname}"
+        fi
+    done
+}
+
+#aws_access_key_env "DEV"
+#aws_access_key_env "STAGING"
+#aws_access_key_env "PROD"
+#aws_access_key_env "MGMT"
