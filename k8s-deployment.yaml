@@ -14,8 +14,8 @@ spec:
         app: hello-world
     spec:
       containers:
-        - name: busybox
-          image: busybox
+        - name: nginx
+          image: nginx
           command:
             - sleep
             - "3600"
